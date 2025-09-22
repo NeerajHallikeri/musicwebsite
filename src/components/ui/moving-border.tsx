@@ -1,16 +1,11 @@
+// moving-border.tsx
 "use client";
-import React from "react";
-import {
-  motion,
-  useAnimationFrame,
-  useMotionTemplate,
-  useMotionValue,
-  useTransform,
-} from "motion/react";
-import { useRef } from "react";
+import React, { useRef } from "react";
+import { motion, useAnimationFrame, useMotionTemplate, useMotionValue, useTransform } from "motion/react";
 import { cn } from "@/utils/cn";
 
-export function Button({
+// Button component
+export const Button = ({
   borderRadius = "1.75rem",
   children,
   as: Component = "button",
@@ -28,16 +23,14 @@ export function Button({
   duration?: number;
   className?: string;
   [key: string]: any;
-}) {
+}) => {
   return (
     <Component
       className={cn(
         "relative h-16 w-40 overflow-hidden bg-transparent p-[1px] text-xl",
         containerClassName,
       )}
-      style={{
-        borderRadius: borderRadius,
-      }}
+      style={{ borderRadius }}
       {...otherProps}
     >
       <div
@@ -59,16 +52,15 @@ export function Button({
           "relative flex h-full w-full items-center justify-center border border-slate-800 bg-slate-900/[0.8] text-sm text-white antialiased backdrop-blur-xl",
           className,
         )}
-        style={{
-          borderRadius: `calc(${borderRadius} * 0.96)`,
-        }}
+        style={{ borderRadius: `calc(${borderRadius} * 0.96)` }}
       >
         {children}
       </div>
     </Component>
   );
-}
+};
 
+// MovingBorder component
 export const MovingBorder = ({
   children,
   duration = 3000,
@@ -82,7 +74,7 @@ export const MovingBorder = ({
   ry?: string;
   [key: string]: any;
 }) => {
-  const pathRef = useRef<any>();
+  const pathRef = useRef<SVGPathElement | null>(null);
   const progress = useMotionValue<number>(0);
 
   useAnimationFrame((time) => {
@@ -93,16 +85,12 @@ export const MovingBorder = ({
     }
   });
 
-  const x = useTransform(
-    progress,
-    (val) => pathRef.current?.getPointAtLength(val).x,
-  );
-  const y = useTransform(
-    progress,
-    (val) => pathRef.current?.getPointAtLength(val).y,
-  );
+  const x = useTransform(progress, (val) => pathRef.current?.getPointAtLength(val).x ?? 0);
+  const y = useTransform(progress, (val) => pathRef.current?.getPointAtLength(val).y ?? 0);
 
   const transform = useMotionTemplate`translateX(${x}px) translateY(${y}px) translateX(-50%) translateY(-50%)`;
+
+  const rectPath = `M0,0 H100 V100 H0 Z`;
 
   return (
     <>
@@ -114,14 +102,7 @@ export const MovingBorder = ({
         height="100%"
         {...otherProps}
       >
-        <rect
-          fill="none"
-          width="100%"
-          height="100%"
-          rx={rx}
-          ry={ry}
-          ref={pathRef}
-        />
+        <path d={rectPath} fill="none" rx={rx} ry={ry} ref={pathRef} />
       </svg>
       <motion.div
         style={{
